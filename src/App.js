@@ -1,21 +1,25 @@
 import React from "react";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useMutation } from "@apollo/client";
 
-const ALL_PEOPLE = gql`
-  query AllPeople {
-    people {
-      id
-      name
+export const REGISTER = gql`
+  mutation Register($input: RegisterInput!) {
+    register(input: $input) {
+      ... on Error {
+        error {
+          path
+          message
+        }
+      }
+      ... on User {
+        email
+        username
+      }
     }
   }
 `;
 
 export default function App() {
-  const {
-    loading,
-    data
-  } = useQuery(ALL_PEOPLE);
-
+  const [mutate, { loading: mutationLoading, error }] = useMutation(REGISTER);
   return (
     <main>
       <h1>Apollo Client Issue Reproduction</h1>
@@ -23,15 +27,18 @@ export default function App() {
         This application can be used to demonstrate an error in Apollo Client.
       </p>
       <h2>Names</h2>
-      {loading ? (
-        <p>Loading…</p>
-      ) : (
-        <ul>
-          {data.people.map(person => (
-            <li key={person.id}>{person.name}</li>
-          ))}
-        </ul>
-      )}
+      <button
+        onClick={async () => {
+          const { data } = await mutate({
+            variables: {
+              input: { email: "hmodi@2457@gmail.com" },
+            },
+          });
+          console.log(data);
+        }}
+      >
+        Click me
+      </button>
     </main>
   );
 }
